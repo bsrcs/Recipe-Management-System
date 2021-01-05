@@ -12,6 +12,7 @@ public interface RecipeService {
     Recipe getRecipe(Long id);
     Recipe createOrUpdateRecipe(Recipe recipe);
     CreateRecipeResponseDto createRecipe(CreateRecipeRequestDto createRecipeRequestDto, User user);
+    List<Recipe> searchRecipe(String searchWord);
     void deleteRecipe(Recipe recipe);
     Recipe printRecipe(Recipe recipe);
 }

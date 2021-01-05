@@ -16,6 +16,7 @@ import recipemng.services.UserService;
 import recipemng.util.HashUtil;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -50,6 +51,11 @@ public class RecipeManagementController {
         }
     }
 
+    @GetMapping(path = "/recipe/search/{searchWord}")
+    public ResponseEntity<?> searchRecipe(@PathVariable("searchWord") String searchToken){
+        List<Recipe> recipes = recipeService.searchRecipe(searchToken);
+        return new ResponseEntity<>(recipes, HttpStatus.OK);
+    }
 
     @PostMapping(path = "/recipe")
     public ResponseEntity<?> createRecipe(@RequestHeader(value = "secret-token") String secret,
@@ -85,4 +91,6 @@ public class RecipeManagementController {
             return new ResponseEntity<>("Wrong credentials", HttpStatus.FORBIDDEN);
         }
     }
+
+
 }

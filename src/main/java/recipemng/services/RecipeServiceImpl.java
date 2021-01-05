@@ -67,6 +67,11 @@ public class RecipeServiceImpl implements RecipeService{
     }
 
     @Override
+    public List<Recipe> searchRecipe(String searchWord) {
+        return recipeRepo.findBySearchWord(searchWord);
+    }
+
+    @Override
     public void deleteRecipe(Recipe recipe) {
         recipeRepo.delete(recipe);
     }
