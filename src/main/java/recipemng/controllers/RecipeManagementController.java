@@ -10,6 +10,7 @@ import recipemng.dto.CreateRecipeResponseDto;
 import recipemng.dto.CreateUserRequestDto;
 import recipemng.models.Recipe;
 import recipemng.models.User;
+import recipemng.services.AuthenticationService;
 import recipemng.services.RecipeService;
 import recipemng.services.UserService;
 import recipemng.util.HashUtil;
@@ -24,11 +25,13 @@ public class RecipeManagementController {
     RecipeService recipeService;
     @Autowired
     UserService userService;
+    @Autowired
+    AuthenticationService authenticationService;
 
     @GetMapping("/recipes")
     public ResponseEntity<?> getAllRecipes(@RequestHeader(value = "secret-token") String secret){
-        if (checkIfTokenIsValid(secret)) {
-            User user = userService.findByUserName(getUsername(secret)).get();
+        if (authenticationService.checkIfTokenIsValid(secret)) {
+            User user = userService.findByUserName(authenticationService.getUsername(secret)).get();
             return new ResponseEntity<>(recipeService.getAllRecipesOfAUser(user), HttpStatus.OK);
         }
         else{
@@ -39,7 +42,7 @@ public class RecipeManagementController {
     @GetMapping(path = "/recipe/{id}")
     public ResponseEntity<?> getRecipe(@RequestHeader(value = "secret-token") String secret,
     @PathVariable Long id){
-        if (checkIfTokenIsValid(secret)) {
+        if (authenticationService.checkIfTokenIsValid(secret)) {
             return new ResponseEntity<>(recipeService.getRecipe(id), HttpStatus.OK);
         }
         else{
@@ -51,8 +54,8 @@ public class RecipeManagementController {
     @PostMapping(path = "/recipe")
     public ResponseEntity<?> createRecipe(@RequestHeader(value = "secret-token") String secret,
                                           @RequestBody CreateRecipeRequestDto createRecipeRequestDto){
-        if (checkIfTokenIsValid(secret)) {
-            User user = userService.findByUserName(getUsername(secret)).get();
+        if (authenticationService.checkIfTokenIsValid(secret)) {
+            User user = userService.findByUserName(authenticationService.getUsername(secret)).get();
             return new ResponseEntity<>(recipeService.createRecipe(createRecipeRequestDto,user), HttpStatus.OK);
         }else{
             return new ResponseEntity<>("Bad token :(", HttpStatus.FORBIDDEN);
@@ -81,37 +84,5 @@ public class RecipeManagementController {
         }else{
             return new ResponseEntity<>("Wrong credentials", HttpStatus.FORBIDDEN);
         }
-    }
-
-    private boolean checkIfTokenIsValid(String token){
-
-        boolean isTokenValid = false;
-        byte[] decodedTokenBytes = Base64.decodeBase64(token);
-        String decodedToken = new String(decodedTokenBytes);
-
-        String[] splittedToken = decodedToken.split(":");
-        String username = splittedToken[0];
-        String hashedPassword = splittedToken[1];
-
-        Optional<User> optionalUser = userService.findByUserName(username);
-        if (optionalUser.isPresent()) {
-            User user = optionalUser.get();
-            String realHash = HashUtil.getHash(user.getPassword());
-
-            if(realHash.equals(hashedPassword)){
-                isTokenValid = true;
-            }
-        }
-        return isTokenValid;
-    }
-
-    private String getUsername(String token){
-        byte[] decodedTokenBytes = Base64.decodeBase64(token);
-        String decodedToken = new String(decodedTokenBytes);
-
-        String[] splittedToken = decodedToken.split(":");
-        String username = splittedToken[0];
-
-        return username;
     }
 }
