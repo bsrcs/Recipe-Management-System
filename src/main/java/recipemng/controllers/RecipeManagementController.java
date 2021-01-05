@@ -6,7 +6,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import recipemng.dto.CreateRecipeRequestDto;
-import recipemng.dto.CreateRecipeResponseDto;
 import recipemng.dto.CreateUserRequestDto;
 import recipemng.models.Recipe;
 import recipemng.models.User;
@@ -20,6 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
+@RequestMapping("recipe-app")
 public class RecipeManagementController {
 
     @Autowired
@@ -29,7 +29,7 @@ public class RecipeManagementController {
     @Autowired
     AuthenticationService authenticationService;
 
-    @GetMapping("/recipes")
+    @GetMapping("/user/recipes")
     public ResponseEntity<?> getAllRecipes(@RequestHeader(value = "secret-token") String secret){
         if (authenticationService.checkIfTokenIsValid(secret)) {
             User user = userService.findByUserName(authenticationService.getUsername(secret)).get();
@@ -40,24 +40,18 @@ public class RecipeManagementController {
         }
     }
 
-    @GetMapping(path = "/recipe/{id}")
-    public ResponseEntity<?> getRecipe(@RequestHeader(value = "secret-token") String secret,
-    @PathVariable Long id){
-        if (authenticationService.checkIfTokenIsValid(secret)) {
+    @GetMapping(path = "/public/recipe/{id}")
+    public ResponseEntity<?> getRecipe(@PathVariable Long id){
             return new ResponseEntity<>(recipeService.getRecipe(id), HttpStatus.OK);
-        }
-        else{
-            return new ResponseEntity<>("Wrong token", HttpStatus.FORBIDDEN);
-        }
     }
 
-    @GetMapping(path = "/recipe/search/{searchWord}")
+    @GetMapping(path = "/public/recipes/search/{searchWord}")
     public ResponseEntity<?> searchRecipe(@PathVariable("searchWord") String searchToken){
         List<Recipe> recipes = recipeService.searchRecipe(searchToken);
         return new ResponseEntity<>(recipes, HttpStatus.OK);
     }
 
-    @PostMapping(path = "/recipe")
+    @PostMapping(path = "/user/recipe")
     public ResponseEntity<?> createRecipe(@RequestHeader(value = "secret-token") String secret,
                                           @RequestBody CreateRecipeRequestDto createRecipeRequestDto){
         if (authenticationService.checkIfTokenIsValid(secret)) {
